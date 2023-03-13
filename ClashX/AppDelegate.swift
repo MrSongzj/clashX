@@ -13,9 +13,6 @@ import RxCocoa
 import RxSwift
 import CocoaLumberjack
 
-import AppCenter
-import AppCenterAnalytics
-
 let statusItemLengthWithSpeed: CGFloat = 72
 
 @NSApplicationMain
@@ -586,8 +583,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if WebPortalManager.hasWebProtal {
             WebPortalManager.shared.addWebProtalMenuItem(&statusMenu)
         }
-        AutoUpgardeManager.shared.setup()
-        AutoUpgardeManager.shared.addChanelMenuItem(&experimentalMenu)
+//        AutoUpgardeManager.shared.setup()
+//        AutoUpgardeManager.shared.addChanelMenuItem(&experimentalMenu)
         updateExperimentalFeatureStatus()
         RemoteControlManager.setupMenuItem(separator: externalControlSeparator)
     }
