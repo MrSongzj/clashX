@@ -82,6 +82,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         registCrashLogger()
         DispatchQueue.main.async {
             self.postFinishLaunching()
+            CommandLineHandler.setGitHubProxy(enabled: true, complete: {})
         }
     }
 
@@ -759,7 +760,9 @@ extension AppDelegate {
     }
 
     @IBAction func actionQuit(_ sender: Any) {
-        NSApplication.shared.terminate(self)
+        CommandLineHandler.setGitHubProxy(enabled: false) {
+            NSApplication.shared.terminate(self)
+        }
     }
 }
 
@@ -1026,6 +1029,67 @@ extension AppDelegate {
             }
         } else if host == "update-config" {
           updateConfig()
+        }
+    }
+}
+
+final class CommandLineHandler {
+    static let queue = OperationQueue()
+    
+    static func excute(_ commands: [String], completion: @escaping (Bool) -> Void) {
+        queue.addOperation {
+            // 多个命令合并
+            let commandsString = commands.joined(separator: "\n")
+            // 在主线程执行回调函数
+            let callbackInMain: (Bool) -> Void = { result in
+                OperationQueue.main.addOperation {
+                    completion(result)
+                }
+            }
+            // zsh 路径
+            let zshURL = URL(fileURLWithPath: "/bin/zsh")
+            let process = Process()
+            // 设置 shell 的类型
+            process.executableURL = zshURL
+            // arguments 设置命令行
+            // --login 好像会加载环境变量
+            // -c 还不清楚是啥
+            process.arguments = ["--login", "-c", commandsString]
+            // 日志输出
+//            let outputPipe = Pipe()
+//            process.standardOutput = outputPipe
+            do {
+                try process.run()
+            } catch(let error) {
+                print("Command line error \(error)")
+                callbackInMain(false)
+                return
+            }
+//            let fileHandle = outputPipe.fileHandleForReading
+//            let data = fileHandle.readDataToEndOfFile()
+            process.waitUntilExit()
+            let status = process.terminationStatus
+            callbackInMain(status == 0)
+//            if let string = String(data: data, encoding: .utf8) {
+//                print("szj")
+//                print(string)
+//            }
+        }
+    }
+}
+
+extension CommandLineHandler {
+    static func setGitHubProxy(enabled: Bool, complete: @escaping () -> Void) {
+        let commands: [String]
+        if enabled {
+            commands = ["git config --global http.proxy http://127.0.0.1:7890",
+                   "git config --global https.proxy http://127.0.0.1:7890"]
+        } else {
+            commands = ["git config --global --unset http.proxy",
+                   "git config --global --unset https.proxy"]
+        }
+        excute(commands) { _ in
+            complete()
         }
     }
 }
