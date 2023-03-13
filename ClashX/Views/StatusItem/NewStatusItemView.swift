@@ -57,7 +57,10 @@ struct SwiftUIView: View {
     @ObservedObject var viewModel: StatusMenuViewModel
     var body: some View {
         HStack(alignment:.center) {
-            Image(nsImage: $viewModel.image.wrappedValue).renderingMode(.template)
+//            Image(nsImage: $viewModel.image.wrappedValue).renderingMode(.template)
+            Text("🦋")
+                .font(.system(size: 17))
+                .minimumScaleFactor(1)
             if $viewModel.showSpeed.wrappedValue {
                 Spacer(minLength: 0)
                 VStack(alignment: .trailing) {
@@ -66,7 +69,7 @@ struct SwiftUIView: View {
                 }.font(Font(StatusItemTool.font))
             }
         }
-        .frame(width: $viewModel.showSpeed.wrappedValue ? statusItemLengthWithSpeed - 6 : 25)
+        .frame(width: $viewModel.showSpeed.wrappedValue ? statusItemLengthWithSpeed - 6 : 22)
         .frame(minHeight: 22)
     }
 }
